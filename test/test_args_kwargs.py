@@ -1,33 +1,15 @@
 import unittest
-from typing import Any
 
 from stateless import stateless
-
-
-def stateful_function(*args: list[Any], **kwargs: list[Any]) -> None:
-    for arg in args:
-        arg.clear()
-    for arg in kwargs.values():
-        arg.clear()
+from test_general import stateful_function
 
 
 class TestArgsKwargs(unittest.TestCase):
-    def test_stateful_function(self):
-        arg_a = [1, 2, 3]
-        arg_b = ["a", "b", "c"]
-        arg_c = [5, 6, 7]
-        arg_d = ["d", "e", "f"]
-        stateful_function(arg_a, arg_b, x=arg_c, y=arg_d)
-        self.assertEqual(arg_a, [])
-        self.assertEqual(arg_b, [])
-        self.assertEqual(arg_c, [])
-        self.assertEqual(arg_d, [])
-
     def test_single_arg(self):
         arg = [1, 2, 3]
         arg_copy = [x for x in arg]
         stateless(stateful_function)(arg)
-        self.assertEqual(arg, arg_copy)
+        self.assertEqual(arg_copy, arg)
 
     def test_multi_arg(self):
         arg_a = [1, 2, 3]
@@ -42,7 +24,7 @@ class TestArgsKwargs(unittest.TestCase):
         arg = [1, 2, 3]
         arg_copy = [x for x in arg]
         stateless(stateful_function)(x=arg)
-        self.assertEqual(arg, arg_copy)
+        self.assertEqual(arg_copy, arg)
 
     def test_multi_kwarg(self):
         arg_a = [1, 2, 3]
