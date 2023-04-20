@@ -1,5 +1,5 @@
 import unittest
-from typing import Any
+from typing import Any, TypeVar, Callable
 
 
 def stateful_function(*args: list[Any], **kwargs: list[Any]) -> None:
@@ -9,7 +9,7 @@ def stateful_function(*args: list[Any], **kwargs: list[Any]) -> None:
         arg.clear()
 
 
-class TestGeneral(unittest.TestCase):
+class TestStatefulFunction(unittest.TestCase):
     def test_stateful_function(self):
         arg_a = [1, 2, 3]
         arg_b = ["a", "b", "c"]

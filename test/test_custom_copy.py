@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import Mock
 
 from stateless import stateless
-from test_general import stateful_function
+from test_stateful_function import stateful_function
 
 
 class TestCustomCopy(unittest.TestCase):
