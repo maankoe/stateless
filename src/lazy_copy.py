@@ -30,29 +30,39 @@ class Copied:
 class Copy:
     def __init__(self, base):
         self._base = base
-
-        self._operation = base._operation
-
-        # methods = {name: getattr(type(base), name) for name in ["operation"]}
-        # values = {name: Copied(base, name) for name in ["_value", "_operation"]}
-
-        for name in ["operation"]:
-            setattr(self, name, lambda: getattr(type(base), name)(self))
-
-        self._value_copy = Copied(base, "_value")
+        values = {name: Copied(base, name) for name in ["_value"]}
+        properties = {name: getattr(type(base), name) for name in ["value"]}
+        functions = {name: Copied(base, name) for name in ["_operation"]}
 
         child_class = type(
             self.__class__.__name__ + '_COPY',
             (self.__class__,),
             {
-                "value": property(lambda b_self: getattr(type(base), "value").fget(b_self)),
-                "_value": property(
-                    lambda b_self: b_self._value_copy.getter(),
-                    lambda b_self, x: b_self._value_copy.setter(x),
-                )
+                **{
+                    name: property(lambda b_self: prop.fget(b_self))
+                    for name, prop in properties.items()
+                },
+                **{
+                    name: property(lambda b_self: value.getter(), lambda b_self, x: value.setter(x))
+                    for name, value in values.items()
+                },
+                # **{
+                #     name: property(
+                #         lambda b_self, *args, **kwargs: function.getter()(*args, **kwargs),
+                #         lambda b_self, x: function.setter(x)
+                #     )
+                #     for name, function in functions.items()
+                # }
             }
         )
         self.__class__ = child_class
+
+        for name in ["_operation"]:
+            setattr(self, name, getattr(base, name))
+
+        for name in ["operation"]:
+            setattr(self, name, lambda: getattr(type(base), name)(self))
+
 
 
 def copy(base):
