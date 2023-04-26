@@ -1,8 +1,5 @@
-# Need a better name for this, it's kind of "seemingly/apparently frozen/static/stateful"
-# Would nice to have 'normal' operations applied to a duplicate/copy object, but be able to access the
-#  original when wanted by the 'user'
-from inspect import getmembers
-from stateless import stateless
+import inspect
+from typing import Callable
 
 
 class CopyData:
@@ -27,14 +24,36 @@ class Copied:
         self._value = x
 
 
+def is_property(name, member):
+    return isinstance(member, property)
+
+
+def is_function(name, member):
+    return inspect.isfunction(member)
+
+
+def is_method(name, member):
+    return inspect.ismethod(member) or inspect.isbuiltin(member) or isinstance(member, Callable) and name != "__class__"
+
+
 class Copy:
     def __init__(self, base):
         self._base = base
-        values = {name: Copied(base, name) for name in ["_value"]}
-        properties = {name: getattr(type(base), name) for name in ["value"]}
-        functions = {name: Copied(base, name) for name in ["_operation"]}
+        values = {}
+        properties = {}
+        functions = {}
+        methods = {}
+        for name, member in inspect.getmembers(base):
+            if is_function(name, member):
+                functions[name] = getattr(base, name)
+            elif is_method(name, member):
+                methods[name] = getattr(type(base), name)
+            elif is_property(name, member):
+                properties[name] = getattr(type(base), name)
+            else:
+                values[name] = Copied(base, name)
 
-        child_class = type(
+        self.__class__ = type(
             self.__class__.__name__ + '_COPY',
             (self.__class__,),
             {
@@ -45,24 +64,15 @@ class Copy:
                 **{
                     name: property(lambda b_self: value.getter(), lambda b_self, x: value.setter(x))
                     for name, value in values.items()
-                },
-                # **{
-                #     name: property(
-                #         lambda b_self, *args, **kwargs: function.getter()(*args, **kwargs),
-                #         lambda b_self, x: function.setter(x)
-                #     )
-                #     for name, function in functions.items()
-                # }
+                }
             }
         )
-        self.__class__ = child_class
 
-        for name in ["_operation"]:
-            setattr(self, name, getattr(base, name))
+        for name, member in functions.items():
+            setattr(self, name, member)
 
-        for name in ["operation"]:
-            setattr(self, name, lambda: getattr(type(base), name)(self))
-
+        for name, member in methods.items():
+            setattr(self, name, lambda *args, **kwargs: member(self, *args, **kwargs))
 
 
 def copy(base):
