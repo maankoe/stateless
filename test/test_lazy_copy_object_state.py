@@ -38,7 +38,9 @@ class TestObjectState(unittest.TestCase):
         stateful_copy = copy(stateful)
         stateful_copy.operation()
         self.assertEqual(value, stateful.state.value, "Underlying changed")
-        self.assertEqual(operation(value), stateful_copy.state.value, "Copy didn't change")
+        self.assertEqual(
+            operation(value), stateful_copy.state.value, "Copy didn't change"
+        )
 
     def test_object_stateless_float(self):
         value = float(12.4)
@@ -46,7 +48,9 @@ class TestObjectState(unittest.TestCase):
         stateful_copy = copy(stateful)
         stateful_copy.operation()
         self.assertEqual(value, stateful.state.value, "Underlying changed")
-        self.assertEqual(operation(value), stateful_copy.state.value, "Copy didn't change")
+        self.assertEqual(
+            operation(value), stateful_copy.state.value, "Copy didn't change"
+        )
 
     def test_object_stateless_str(self):
         value = str("HELLO WORLD")
@@ -54,4 +58,6 @@ class TestObjectState(unittest.TestCase):
         stateful_copy = copy(stateful)
         stateful_copy.operation()
         self.assertEqual(value, stateful.state.value, "Underlying changed")
-        self.assertEqual(operation(value), stateful_copy.state.value, "Copy didn't change")
+        self.assertEqual(
+            operation(value), stateful_copy.state.value, "Copy didn't change"
+        )

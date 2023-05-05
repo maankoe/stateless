@@ -21,7 +21,9 @@ class TestCustomCopy(unittest.TestCase):
         arg_b_copy = [x for x in arg_b]
         mock_copy_a = Mock()
         mock_copy_b = Mock()
-        stateless(stateful_function, arg_copy_funcs=[mock_copy_a, mock_copy_b])(arg_a, arg_b)
+        stateless(stateful_function, arg_copy_funcs=[mock_copy_a, mock_copy_b])(
+            arg_a, arg_b
+        )
         mock_copy_a.assert_called_with(arg_a)
         mock_copy_b.assert_called_with(arg_b)
         self.assertEqual(arg_a_copy, arg_a)
@@ -34,7 +36,9 @@ class TestCustomCopy(unittest.TestCase):
         arg_b_copy = [x for x in arg_b]
         mock_copy_a = Mock()
         mock_copy_b = Mock()
-        stateless(stateful_function, arg_copy_funcs={"x": mock_copy_a, "y": mock_copy_b})(x=arg_a, y=arg_b)
+        stateless(
+            stateful_function, arg_copy_funcs={"x": mock_copy_a, "y": mock_copy_b}
+        )(x=arg_a, y=arg_b)
         mock_copy_a.assert_called_with(arg_a)
         mock_copy_b.assert_called_with(arg_b)
         self.assertEqual(arg_a_copy, arg_a)

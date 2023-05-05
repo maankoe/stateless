@@ -14,7 +14,6 @@ class DeferredCopy:
         self._value = None
         self._primitive_types = primitive_types
 
-
     def getter(self):
         logger.debug(f"Deferred: GETTER {self._name}")
         if self._value is None:
@@ -49,7 +48,12 @@ def _is_function(name, member):
 
 
 def _is_method(name, member):
-    return inspect.ismethod(member) or inspect.isbuiltin(member) or isinstance(member, Callable) and name != "__class__"
+    return (
+        inspect.ismethod(member)
+        or inspect.isbuiltin(member)
+        or isinstance(member, Callable)
+        and name != "__class__"
+    )
 
 
 def _gather_class_members(base, captured):
@@ -106,7 +110,7 @@ class Copy:
         self.__class__ = type(
             self.__class__.__name__ + self._copy_postfix,
             (self.__class__,),
-            {**_make_properties(properties), **_make_values(values)}
+            {**_make_properties(properties), **_make_values(values)},
         )
         self._setup_methods(methods)
         self._setup_functions(functions)
