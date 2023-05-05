@@ -8,16 +8,18 @@ logger = logging.getLogger(__file__)
 
 
 class DeferredCopy:
-    def __init__(self, base, name):
+    def __init__(self, base, name, primitive_types=None):
         self._base = base
         self._name = name
         self._value = None
+        self._primitive_types = primitive_types
+
 
     def getter(self):
         logger.debug(f"Deferred: GETTER {self._name}")
         if self._value is None:
             value = getattr(self._base, self._name)
-            if _is_primitive(value):
+            if _is_primitive(value, _primitive_types):
                 self._value = value
             else:
                 self._value = copy(value)
@@ -31,8 +33,11 @@ class DeferredCopy:
 _primitive_types = {int, float, str}
 
 
-def _is_primitive(instance):
-    return type(instance) in _primitive_types
+def _is_primitive(instance, primitive_types=None):
+    if primitive_types is None:
+        return type(instance) in primitive_types
+    else:
+        return type(instance) in _primitive_types
 
 
 def _is_property(name, member):
@@ -59,7 +64,7 @@ def _gather_class_members(base, captured):
     return methods, properties
 
 
-def _gather_instance_members(base, captured):
+def _gather_instance_members(base, primitive_types, captured):
     functions, values = {}, {}
     for name, member in inspect.getmembers(base):
         if name in captured:
@@ -68,7 +73,7 @@ def _gather_instance_members(base, captured):
         if _is_function(name, member):
             functions[name] = getattr(base, name)
         else:
-            values[name] = DeferredCopy(base, name)
+            values[name] = DeferredCopy(base, name, primitive_types)
         captured.add(name)
     return functions, values
 
@@ -88,18 +93,18 @@ def _make_properties(properties):
 
 
 class Copy:
-    def __init__(self, base):
+    def __init__(self, base, primitive_types, copy_postfix):
         logger.debug(f"---COPY--- {type(base)}")
         self._base = base
+        self._copy_postfix = "_COPY" if copy_postfix is None else copy_postfix
         captured = set()
         methods, properties = _gather_class_members(base, captured)
-        functions, values = _gather_instance_members(base, captured)
-
+        functions, values = _gather_instance_members(base, primitive_types, captured)
         self._setup_class(methods, properties, functions, values)
 
     def _setup_class(self, methods, properties, functions, values):
         self.__class__ = type(
-            self.__class__.__name__ + '_COPY',
+            self.__class__.__name__ + self._copy_postfix,
             (self.__class__,),
             {**_make_properties(properties), **_make_values(values)}
         )
@@ -115,5 +120,5 @@ class Copy:
             setattr(self, name, member)
 
 
-def copy(base):
-    return Copy(base)
+def copy(base, primitive_types=None, copy_postfix=None):
+    return Copy(base, primitive_types, copy_postfix)
