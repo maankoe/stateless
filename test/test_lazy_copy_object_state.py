@@ -1,16 +1,19 @@
 import unittest
-from typing import Callable
+from typing import Callable, Generic, TypeVar
 
 from lazy_copy import copy
 
 
-class State:
-    def __init__(self, value: int):
+T = TypeVar("T")
+
+
+class State(Generic[T]):
+    def __init__(self, value: T):
         self.value = value
 
 
-class Stateful:
-    def __init__(self, state: State, operation: Callable[[int], int]):
+class Stateful(Generic[T]):
+    def __init__(self, state: State, operation: Callable[[T], T]):
         self._state = state
         self._operation = operation
 
@@ -25,17 +28,30 @@ class Stateful:
         return self._state
 
 
-value = 5
 operation = lambda x: x * 3
-identity = lambda x: x
 
 
 class TestObjectState(unittest.TestCase):
-    def test_object_stateless(self):
+    def test_object_stateless_int(self):
+        value = int(11)
         stateful = Stateful(State(value), operation)
         stateful_copy = copy(stateful)
         stateful_copy.operation()
         self.assertEqual(value, stateful.state.value, "Underlying changed")
         self.assertEqual(operation(value), stateful_copy.state.value, "Copy didn't change")
-        # is_property(stateful.state) == false, so it gets handled as a value.
-        # isinstance(type(base).state, property) == true though!
+
+    def test_object_stateless_float(self):
+        value = float(12.4)
+        stateful = Stateful(State(value), operation)
+        stateful_copy = copy(stateful)
+        stateful_copy.operation()
+        self.assertEqual(value, stateful.state.value, "Underlying changed")
+        self.assertEqual(operation(value), stateful_copy.state.value, "Copy didn't change")
+
+    def test_object_stateless_str(self):
+        value = str("HELLO WORLD")
+        stateful = Stateful(State(value), operation)
+        stateful_copy = copy(stateful)
+        stateful_copy.operation()
+        self.assertEqual(value, stateful.state.value, "Underlying changed")
+        self.assertEqual(operation(value), stateful_copy.state.value, "Copy didn't change")

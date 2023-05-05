@@ -1,5 +1,5 @@
 import unittest
-from typing import Any, TypeVar, Callable
+from typing import Any
 
 
 def stateful_function(*args: list[Any], **kwargs: list[Any]) -> None:
